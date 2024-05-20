@@ -1,0 +1,23 @@
+-- AlterTable
+ALTER TABLE "Users" ADD COLUMN     "birthdate" TIMESTAMP(3),
+ADD COLUMN     "height" DOUBLE PRECISION,
+ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "weight" DOUBLE PRECISION;
+
+-- CreateTable
+CREATE TABLE "Notes" (
+    "Nid" SERIAL NOT NULL,
+    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "NoteAutherId" INTEGER NOT NULL,
+    "PenitentId" INTEGER NOT NULL,
+    "NoteSub" TEXT NOT NULL,
+    "NoteMain" TEXT NOT NULL,
+
+    CONSTRAINT "Notes_pkey" PRIMARY KEY ("Nid")
+);
+
+-- AddForeignKey
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_NoteAutherId_fkey" FOREIGN KEY ("NoteAutherId") REFERENCES "accounts"("AccId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_PenitentId_fkey" FOREIGN KEY ("PenitentId") REFERENCES "accounts"("AccId") ON DELETE RESTRICT ON UPDATE CASCADE;

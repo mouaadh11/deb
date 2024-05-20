@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  email String?   @default("")
+  phoneNum  String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  birthdate DateTime? 
+  firstName String
+  lastName  String
+  BloodType String? @default("")
+  weight  Float?  @default(0)
+  height Float?   @default(0)
+  MinRate Int?    @default(0)// add this new attribute to update patient dto
+  MaxRate Int?    @default(0)
+  hash String
+  Role String     @default("Doctor")
+  Devices Device? @relation("owned")
+  DevicesActivated Device[] @relation("active")
+  Account accounts?
+  @@map("Users")
+} 
+model Notes {
+  Nid Int @id @default(autoincrement())
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt @default(now())
+  AuthorId Int?
+  Author accounts? @relation(name: "AutherNote",fields: [AuthorId], references: [AccId])
+  PatientId Int?
+  patient accounts? @relation(name: "Note", fields: [PatientId], references: [AccId])
+  NoteSub String
+  NoteMain String
+}
+
+model Device {
+  Sid        Int @id @default(autoincrement())
+  activateCode Int @unique 
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt @default(now())
+  ownerID Int? @unique
+  owner Users? @relation(name: "owned",fields: [ownerID], references: [id])
+  Activator Int?
+  activtor Users? @relation(name: "active", fields: [Activator], references: [id])
+  userlist UserListRecords[]
+  @@map("Devices")
+}
+
+model accounts {
+  AccId Int @id @default(autoincrement())
+  AccountOwner Int? @unique
+  accountowner Users? @relation(fields: [AccountOwner], references: [id])
+  NotesA Notes[] @relation("AutherNote")
+  Notes Notes[] @relation("Note")
+  userRecord UserListRecords[] 
+  PreviewRequest PreviewerList[] @relation("Pre")
+  sentPreviewRequest PreviewerList[] @relation("PreReq")
+  appointment Appointment[] @relation("petients")
+  DocAppointmentDocs Appointment[] @relation("doctor")
+  Notifications Notification[] @relation("docNotif")
+  NotifcationsAlrt Notification[] @relation("patientNotif")
+}
+model PreviewerList {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  PreviewedAccountId Int?
+  previewed accounts? @relation(name:"Pre",fields: [PreviewedAccountId], references: [AccId])
+  PreviewerAccountId Int?
+  previewer accounts? @relation(name:"PreReq",fields: [PreviewerAccountId], references: [AccId])
+}
+
+model Notification {
+  Notid Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  UserAccid Int?
+  //notifDate DateTime @default(now())
+  useracc accounts? @relation( name: "docNotif",fields: [UserAccid], references: [AccId])
+  PatientAccid Int?
+  patientAcc accounts? @relation(name:"patientNotif",fields: [PatientAccid], references: [AccId])
+  context String 
+  isRead Boolean?
+}
+
+model Appointment {
+  Aid Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  // updatedAt DateTime @updatedAt @default(now())
+  AppointmentDate DateTime @default(now())
+  PatientId Int?
+  patients accounts? @relation(name:"petients",fields: [PatientId], references: [AccId])
+  DoctorId Int?
+  Doctor accounts? @relation(name:"doctor",fields: [DoctorId], references: [AccId])
+  AppState String
+}
+model Heart_Rate_Record {
+  Rid      Int @id @default(autoincrement())
+  ULRid     Int
+  ulrid UserListRecords? @relation(fields: [ULRid], references: [ULRid])
+  beat      Float
+  redReading   Float
+  ir_Reading   Float
+  timeStamp DateTime @db.Timestamptz(3)
+}
+
+model UserListRecords {
+  ULRid Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  AuthorDeviceid Int?
+  device Device? @relation(fields: [AuthorDeviceid], references: [Sid])
+  User Int? //not unique user can have mulitple records with diffrenet autherDevices
+  user accounts? @relation(fields: [User], references: [AccountOwner])
+  HR_Record Heart_Rate_Record[]
+}
